@@ -1,0 +1,121 @@
+@import 'tailwindcss';
+
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+html[data-theme="dark"] body {
+  background: #030A07;
+  color: #e8efe9;
+}
+
+html[data-theme="dark"] [class~="bg-white"],
+html[data-theme="dark"] [class~="bg-[#F8F8F6]"],
+html[data-theme="dark"] [class~="bg-[#F3F4F2]"],
+html[data-theme="dark"] [class~="bg-[#E8EFE9]"] {
+  background-color: #101913 !important;
+}
+
+html[data-theme="dark"] [class~="text-[#1F1F1F]"],
+html[data-theme="dark"] [class~="text-[#0F2D1F]"],
+html[data-theme="dark"] [class~="text-[#34443C]"],
+html[data-theme="dark"] [class~="text-[#4B5B52]"] {
+  color: #e8efe9 !important;
+}
+
+html[data-theme="dark"] [class~="text-[#68726E]"] {
+  color: #a9b8ae !important;
+}
+
+html[data-theme="dark"] [class~="border-[#E5E7EB]"],
+html[data-theme="dark"] [class~="border-[#DFE4DF]"],
+html[data-theme="dark"] [class~="border-[#DCE3DE]"] {
+  border-color: #28372f !important;
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea,
+html[data-theme="dark"] select {
+  color: #e8efe9;
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] .auth-input {
+  background: #101913;
+  border-color: #28372f;
+  color: #e8efe9;
+}
+
+html[data-theme="dark"] .auth-input::placeholder {
+  color: #9daf9f;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  background: #030A07;
+}
+
+:root {
+  font-family: 'Segoe UI', sans-serif;
+  color: #1f1f1f;
+  background: #f8f8f6;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-serif {
+  font-family: Georgia, serif;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled),
+a[href],
+summary,
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.auth-input {
+  display: block;
+  width: 100%;
+  border: 1px solid #dfe4df;
+  border-radius: 0.55rem;
+  background: #fff;
+  padding: 0.75rem 0.85rem;
+  color: #1f1f1f;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.auth-input-compact {
+  padding-top: 0.55rem;
+  padding-bottom: 0.55rem;
+}
+
+.auth-input:focus {
+  border-color: #1b4332;
+  box-shadow: 0 0 0 3px rgb(27 67 50 / 12%);
+}
