@@ -8,8 +8,7 @@ WolfLink is a one-to-one real-time chat app, built phase by phase as a beginner-
 
 - `client/` — React, Vite, and Tailwind CSS frontend
 - `server/` — Express API and Mongoose database connection
-- `implementation.md` — current audit findings and fresh phase-by-phase implementation plan
-- `todo.md` — phase-by-phase checklist and current status
+- `architecher.md` — project architecture, data flow, deployment option, and interview guide
 
 ## Requirements
 
@@ -22,18 +21,19 @@ WolfLink is a one-to-one real-time chat app, built phase by phase as a beginner-
 1. Copy `client/.env.example` to `client/.env` and `server/.env.example` to `server/.env`.
 2. Set `MONGODB_URI` in `server/.env` to a local or hosted MongoDB connection string. The example uses `127.0.0.1` to avoid local IPv6 resolution surprises.
 3. Set independent random values for `ACCESS_TOKEN_SECRET`, `REFRESH_TOKEN_SECRET`, and `OTP_HASH_SECRET` (each at least 32 characters). Generate them locally with `node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"`. Keep the values private and separate from production credentials.
-4. Install dependencies from the repository root:
+4. Install dependencies from each app folder:
 
    ```sh
+   cd server
+   npm install
+   cd ../client
    npm install
    ```
 
-5. Start the API and frontend in separate terminals:
+5. Start the API and frontend in separate terminals, from their respective folders:
 
-   ```sh
-   npm run dev:server
-   npm run dev:client
-   ```
+   Server terminal: `cd server` then `npm run dev`
+   Client terminal: `cd client` then `npm run dev`
 
 6. Open the Vite URL printed by the frontend (normally `http://localhost:5173`). The frontend proxies `/api` and `/socket.io` requests to the local API.
 
@@ -41,16 +41,16 @@ The API exposes `GET /api/health` for liveness and `GET /api/ready` for readines
 
 ## Commands
 
-Run from the repository root:
+Run commands from the named folder:
 
 | Command | Purpose | Requirements |
 |---|---|---|
-| `npm run dev:server` | Start Express API and Socket.IO with watch mode | `server/.env`; MongoDB for data routes |
-| `npm run dev:client` | Start Vite frontend | `client/.env` optional |
-| `npm run build` | Create the production frontend bundle in `client/dist` | No running services |
-| `npm test` | Run offline security, validation, and configuration unit checks | No MongoDB |
-| `npm run test:integration` | Run auth, OTP, privacy, conversation, message, and socket integration checks | MongoDB reachable at `MONGODB_URI`; tests create and drop uniquely named test databases |
-| `npm run start:server` | Start the API and Socket.IO server for a deployment host | `server/.env`; MongoDB |
+| `server: npm run dev` | Start Express API and Socket.IO with watch mode | `server/.env`; MongoDB for data routes |
+| `client: npm run dev` | Start Vite frontend | `client/.env` optional |
+| `client: npm run build` | Create the production frontend bundle in `client/dist` | No running services |
+| `server: npm test` | Run offline security, validation, and configuration unit checks | No MongoDB |
+| `server: npm run test:integration` | Run auth, OTP, privacy, conversation, message, and socket integration checks | MongoDB reachable at `MONGODB_URI`; tests create and drop uniquely named test databases |
+| `server: npm start` | Start the API and Socket.IO server for a deployment host | `server/.env`; MongoDB |
 
 The unit suite is intentionally separate from integration tests so contributors can run fast checks without credentials or local infrastructure.
 
@@ -77,14 +77,14 @@ Do not put secrets in client variables. Real `.env` files are ignored by Git; on
 
 ## Authentication
 
-Registration requires a unique username, display name, email, and password. Signup also asks for confirm password and validates it in the browser; that confirmation is never sent to the API. Phone stays optional. Sign-in accepts one identifier field containing the account email, username, or full international phone number. Registration creates an account and session and, when SMTP delivery works, sends a six-digit email-verification code. Users can skip verification and verify later in Account Settings, but must verify before using conversation features. The code is HMAC-hashed at rest with a server-only key, expires after 10 minutes, allows five attempts, and can be consumed once. Password-reset and email-verification OTPs use distinct purpose-specific fields and hashes. Configure `SMTP_HOST`, `SMTP_PORT`, and `SMTP_FROM`; authenticated delivery accepts either `SMTP_USER` + `SMTP_PASSWORD` or `SMTP_USER` + `SMTP_PASS`. Partial credentials and conflicting password aliases are configuration errors. Run `npm run check:smtp --workspace server` to test SMTP connection/auth only; it never sends an email. Real mailbox delivery still needs to be confirmed separately.
+Registration requires a unique username, display name, email, and password. Signup also asks for confirm password and validates it in the browser; that confirmation is never sent to the API. Phone stays optional. Sign-in accepts one identifier field containing the account email, username, or full international phone number. Registration creates an account and session and, when SMTP delivery works, sends a six-digit email-verification code. Users can skip verification and verify later in Account Settings, but must verify before using conversation features. The code is HMAC-hashed at rest with a server-only key, expires after 10 minutes, allows five attempts, and can be consumed once. Password-reset and email-verification OTPs use distinct purpose-specific fields and hashes. Configure `SMTP_HOST`, `SMTP_PORT`, and `SMTP_FROM`; authenticated delivery accepts either `SMTP_USER` + `SMTP_PASSWORD` or `SMTP_USER` + `SMTP_PASS`. Partial credentials and conflicting password aliases are configuration errors. From `server/`, run `npm run check:smtp` to test SMTP connection/auth only; it never sends an email. Real mailbox delivery still needs to be confirmed separately.
 
-Phone numbers are optional and normalized to E.164 strings. They remain private by default; exact phone search returns a match only when its owner explicitly enables public phone visibility. Username and display-name search do not expose phone numbers. The existing-data username dry run found no accounts needing backfill. For future migration checks, run `npm run backfill:usernames --workspace server` for a dry-run summary, then add `-- --apply` only when records need repair. The script does not print duplicate phone values and refuses to apply indexes while duplicate phone values remain.
+Phone numbers are optional and normalized to E.164 strings. They remain private by default; exact phone search returns a match only when its owner explicitly enables public phone visibility. Username and display-name search do not expose phone numbers. The existing-data username dry run found no accounts needing backfill. For future migration checks, run `npm run backfill:usernames` from `server/` for a dry-run summary, then add `-- --apply` only when records need repair. The script does not print duplicate phone values and refuses to apply indexes while duplicate phone values remain.
 
-Users receive HTTP-only authentication cookies; tokens never enter localStorage or Redux. The access cookie lasts 15 minutes and the refresh cookie lasts 7 days. Refresh tokens are stored as hashes, rotated on use, and revoked on logout or password reset. V1 keeps one active refresh session per account, so a new login replaces the previous session. API contracts are in [`docs/api-endpoints.md`](docs/api-endpoints.md).
+Users receive HTTP-only authentication cookies; tokens never enter localStorage or Redux. The access cookie lasts 15 minutes and the refresh cookie lasts 7 days. Refresh tokens are stored as hashes, rotated on use, and revoked on logout or password reset. V1 keeps one active refresh session per account, so a new login replaces the previous session. API route groups and architecture are in [`architecher.md`](architecher.md).
 
 ## Current status
 
-The buildable V1 includes auth and account settings, private-by-default phone discovery, one-to-one conversations, REST message history, authenticated Socket.IO live messaging, quiet browser message notifications, public profiles, password changes, Cloudinary avatar and image-message upload support, own-message deletion, block/report controls, sent/read check marks, delivery retry, conversation search, mute/pin, a dark theme, responsive layouts, and toast feedback. Message emoji/reaction controls and message sounds are intentionally omitted. Run the server and client in separate terminals for local development; Vite proxies both `/api` and `/socket.io` requests to the API. Presence is single-process memory state in V1 and will not coordinate multiple server instances. See [`docs/api-endpoints.md`](docs/api-endpoints.md) and [`docs/socket-events.md`](docs/socket-events.md) for API and event behavior. Unit and database-backed integration suites have passed; the client production build passes. External acceptance tasks (Cloudinary credentials, real inbox delivery, browser review, and production hosting) are tracked in [`docs/next-time.md`](docs/next-time.md). Group chat, voice/video calls, end-to-end encryption, feeds, AI, and payments remain excluded by the supplied “Not Add in V1” scope.
+The buildable V1 includes auth and account settings, private-by-default phone discovery, one-to-one conversations, REST message history, authenticated Socket.IO live messaging, quiet browser message notifications, public profiles, password changes, Cloudinary avatar and image-message upload support, own-message deletion, block/report controls, sent/read check marks, delivery retry, conversation search, mute/pin, a dark theme, responsive layouts, and toast feedback. Message emoji/reaction controls and message sounds are intentionally omitted. Run the server and client in separate terminals for local development; Vite proxies both `/api` and `/socket.io` requests to the API. Presence is single-process memory state in V1 and will not coordinate multiple server instances. The API route groups and architecture are described in [`architecher.md`](architecher.md). Unit and database-backed integration tests are available; run them in the configured environment before relying on their results. Production hosting has not been selected or completed. Group chat, voice/video calls, end-to-end encryption, feeds, AI, and payments remain excluded by the supplied “Not Add in V1” scope.
 
-For production hosting guidance, database/index migration steps, and cookie/origin configuration, see [`docs/deployment.md`](docs/deployment.md). No production host has been selected or deployed.
+No production host has been selected or deployed. See [`architecher.md`](architecher.md) for a simple deployment option and its limitations.
